@@ -1,21 +1,27 @@
-// clang-format off
-#include <iostream>
-#include <opencv2/opencv.hpp>
-#include "rasterizer.hpp"
-#include "global.hpp"
 #include "Triangle.hpp"
+#include "global.hpp"
+#include "rasterizer.hpp"
+#include <opencv2/opencv.hpp>
+#include <cmath>
+#include <format>
+#include <iostream>
+#include <numbers>
 
 constexpr double MY_PI = 3.1415926;
+constexpr float pi = std::numbers::pi_v<float>;
+constexpr float degree2radian(float angle) {
+    return angle / 180 * pi;
+}
 
 Eigen::Matrix4f get_view_matrix(Eigen::Vector3f eye_pos)
 {
     Eigen::Matrix4f view = Eigen::Matrix4f::Identity();
 
     Eigen::Matrix4f translate;
-    translate << 1,0,0,-eye_pos[0],
-                 0,1,0,-eye_pos[1],
-                 0,0,1,-eye_pos[2],
-                 0,0,0,1;
+    translate << 1, 0, 0, -eye_pos[0], 
+                 0, 1, 0, -eye_pos[1], 
+                 0, 0, 1, -eye_pos[2], 
+                 0, 0, 0, 1;
 
     view = translate*view;
 
@@ -30,8 +36,18 @@ Eigen::Matrix4f get_model_matrix(float rotation_angle)
 
 Eigen::Matrix4f get_projection_matrix(float eye_fov, float aspect_ratio, float zNear, float zFar)
 {
-    // TODO: Copy-paste your implementation from the previous assignment.
     Eigen::Matrix4f projection;
+
+    // TODO: Copy-paste your implementation from the previous assignment.
+
+    float radian = degree2radian(eye_fov);
+    float cot_fovd2 = -1.0f / std::tan(radian / 2.0f);
+    Eigen::Matrix4f aspect_fovY;
+    aspect_fovY << (cot_fovd2 / aspect_ratio), 0, 0, 0,
+                   0, cot_fovd2, 0, 0,
+                   0, 0, (zNear + zFar) / (zNear - zFar), (-2 * zNear * zFar) / (zNear - zFar),
+                   0, 0, 1, 0;
+    projection = aspect_fovY * projection;
 
     return projection;
 }
@@ -52,32 +68,14 @@ int main(int argc, const char** argv)
 
     Eigen::Vector3f eye_pos = {0,0,5};
 
+    std::vector<Eigen::Vector3f> pos{{2, 0, -2},    {0, 2, -2},     {-2, 0, -2},
+                                     {3.5, -1, -5}, {2.5, 1.5, -5}, {-1, 0.5, -5}};
 
-    std::vector<Eigen::Vector3f> pos
-            {
-                    {2, 0, -2},
-                    {0, 2, -2},
-                    {-2, 0, -2},
-                    {3.5, -1, -5},
-                    {2.5, 1.5, -5},
-                    {-1, 0.5, -5}
-            };
+    std::vector<Eigen::Vector3i> ind{{0, 1, 2}, {3, 4, 5}};
 
-    std::vector<Eigen::Vector3i> ind
-            {
-                    {0, 1, 2},
-                    {3, 4, 5}
-            };
-
-    std::vector<Eigen::Vector3f> cols
-            {
-                    {217.0, 238.0, 185.0},
-                    {217.0, 238.0, 185.0},
-                    {217.0, 238.0, 185.0},
-                    {185.0, 217.0, 238.0},
-                    {185.0, 217.0, 238.0},
-                    {185.0, 217.0, 238.0}
-            };
+    std::vector<Eigen::Vector3f> cols{{217.0, 238.0, 185.0}, {217.0, 238.0, 185.0},
+                                      {217.0, 238.0, 185.0}, {185.0, 217.0, 238.0},
+                                      {185.0, 217.0, 238.0}, {185.0, 217.0, 238.0}};
 
     auto pos_id = r.load_positions(pos);
     auto ind_id = r.load_indices(ind);
@@ -125,4 +123,3 @@ int main(int argc, const char** argv)
 
     return 0;
 }
-// clang-format on

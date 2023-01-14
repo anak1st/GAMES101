@@ -1,7 +1,6 @@
 cmake_minimum_required(VERSION 3.20)
 
 set(vcpkg_path "C:/Developer/Source/vcpkg")
-
 set(CMAKE_TOOLCHAIN_FILE "${vcpkg_path}/scripts/buildsystems/vcpkg.cmake" CACHE STRING "Vcpkg toolchain file")
 set(CMAKE_CXX_STANDARD 23)
 

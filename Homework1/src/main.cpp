@@ -2,10 +2,10 @@
 #include "rasterizer.hpp"
 #include <eigen3/Eigen/Eigen>
 #include <opencv2/opencv.hpp>
-#include <iostream>
-#include <format>
-#include <numbers>
 #include <cmath>
+#include <format>
+#include <iostream>
+#include <numbers>
 
 constexpr double MY_PI = 3.1415926;
 constexpr float pi = std::numbers::pi_v<float>;

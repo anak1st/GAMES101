@@ -36,16 +36,16 @@ rst::col_buf_id rst::rasterizer::load_colors(const std::vector<Eigen::Vector3f> 
 
 auto to_vec4(const Eigen::Vector3f& v3, float w = 1.0f)
 {
-    return Vector4f(v3.x(), v3.y(), v3.z(), w);
+    return Eigen::Vector4f(v3.x(), v3.y(), v3.z(), w);
 }
 
 
-static bool insideTriangle(int x, int y, const Vector3f* _v)
+static bool insideTriangle(int x, int y, const Eigen::Vector3f* _v)
 {   
     // TODO : Implement this function to check if the point (x, y) is inside the triangle represented by _v[0], _v[1], _v[2]
 }
 
-static std::tuple<float, float, float> computeBarycentric2D(float x, float y, const Vector3f* v)
+static std::tuple<float, float, float> computeBarycentric2D(float x, float y, const Eigen::Vector3f* v)
 {
     float c1 = (x*(v[1].y() - v[2].y()) + (v[2].x() - v[1].x())*y + v[1].x()*v[2].y() - v[2].x()*v[1].y()) / (v[0].x()*(v[1].y() - v[2].y()) + (v[2].x() - v[1].x())*v[0].y() + v[1].x()*v[2].y() - v[2].x()*v[1].y());
     float c2 = (x*(v[2].y() - v[0].y()) + (v[0].x() - v[2].x())*y + v[2].x()*v[0].y() - v[0].x()*v[2].y()) / (v[1].x()*(v[2].y() - v[0].y()) + (v[0].x() - v[2].x())*v[1].y() + v[2].x()*v[0].y() - v[0].x()*v[2].y());

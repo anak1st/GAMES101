@@ -129,7 +129,7 @@ void rst::rasterizer::draw_line(Eigen::Vector3f begin, Eigen::Vector3f end)
 
 auto to_vec4(const Eigen::Vector3f& v3, float w = 1.0f)
 {
-    return Vector4f(v3.x(), v3.y(), v3.z(), w);
+    return Eigen::Vector4f(v3.x(), v3.y(), v3.z(), w);
 }
 
 void rst::rasterizer::draw(rst::pos_buf_id pos_buffer, rst::ind_buf_id ind_buffer, rst::Primitive type)
