@@ -35,6 +35,7 @@ Eigen::Matrix4f get_model_matrix(float rotation_angle)
     // TODO: Implement this function
     // Create the model matrix for rotating the triangle around the Z axis.
     // Then return it.
+    
     float radian = degree2radian(rotation_angle);
     float sinz = std::sin(radian);
     float cosz = std::cos(radian);
@@ -53,6 +54,7 @@ Eigen::Matrix4f get_rotation(Eigen::Vector3f axis, float angle)
     Eigen::Matrix4f projection = Eigen::Matrix4f::Identity();
     
     float radian = degree2radian(angle);
+    
     Eigen::Matrix4f any_rotation = Eigen::Matrix4f::Zero();
     any_rotation(3, 3) = 1;
     
@@ -82,11 +84,12 @@ Eigen::Matrix4f get_projection_matrix(float eye_fov, float aspect_ratio,
     // TODO: Implement this function
     // Create the projection matrix for the given parameters.
     // Then return it.
+
     float radian = degree2radian(eye_fov);
-    float ty = -1.0f / std::tan(radian / 2.0f);
+    float cot_fovd2 = -1.0f / std::tan(radian / 2.0f);
     Eigen::Matrix4f aspect_fovY;
-    aspect_fovY << (ty / aspect_ratio), 0, 0, 0,
-                   0, ty, 0, 0,
+    aspect_fovY << (cot_fovd2 / aspect_ratio), 0, 0, 0,
+                   0, cot_fovd2, 0, 0,
                    0, 0, (zNear + zFar) / (zNear - zFar), (-2 * zNear * zFar) / (zNear - zFar),
                    0, 0, 1, 0;
     projection = aspect_fovY * projection;
