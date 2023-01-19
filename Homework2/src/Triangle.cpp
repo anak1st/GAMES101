@@ -6,11 +6,10 @@
 #include <algorithm>
 #include <array>
 
-
 Triangle::Triangle() {
-    v[0] << 0,0,0;
-    v[1] << 0,0,0;
-    v[2] << 0,0,0;
+    v[0] << 0, 0, 0;
+    v[1] << 0, 0, 0;
+    v[2] << 0, 0, 0;
 
     color[0] << 0.0, 0.0, 0.0;
     color[1] << 0.0, 0.0, 0.0;

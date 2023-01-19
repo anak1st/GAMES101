@@ -31,12 +31,23 @@ Eigen::Matrix4f get_view_matrix(Eigen::Vector3f eye_pos)
 Eigen::Matrix4f get_model_matrix(float rotation_angle)
 {
     Eigen::Matrix4f model = Eigen::Matrix4f::Identity();
+
+    float radian = degree2radian(rotation_angle);
+    float sinz = std::sin(radian);
+    float cosz = std::cos(radian);
+    Eigen::Matrix4f translate;
+    translate << cosz, -sinz, 0, 0, 
+                 sinz, cosz, 0, 0, 
+                 0, 0, 1, 0, 
+                 0, 0, 0, 1;
+    model = translate * model;
+
     return model;
 }
 
 Eigen::Matrix4f get_projection_matrix(float eye_fov, float aspect_ratio, float zNear, float zFar)
 {
-    Eigen::Matrix4f projection;
+    Eigen::Matrix4f projection = Eigen::Matrix4f::Identity();
 
     // TODO: Copy-paste your implementation from the previous assignment.
 
@@ -45,7 +56,7 @@ Eigen::Matrix4f get_projection_matrix(float eye_fov, float aspect_ratio, float z
     Eigen::Matrix4f aspect_fovY;
     aspect_fovY << (cot_fovd2 / aspect_ratio), 0, 0, 0,
                    0, cot_fovd2, 0, 0,
-                   0, 0, (zNear + zFar) / (zNear - zFar), (-2 * zNear * zFar) / (zNear - zFar),
+                   0, 0, (zNear + zFar) / (zNear - zFar), (-2.0f * zNear * zFar) / (zNear - zFar),
                    0, 0, 1, 0;
     projection = aspect_fovY * projection;
 
@@ -118,7 +129,11 @@ int main(int argc, const char** argv)
         cv::imshow("image", image);
         key = cv::waitKey(10);
 
-        std::cout << "frame count: " << frame_count++ << '\n';
+        frame_count++;
+        angle += 0.1;
+        if (frame_count % 10 == 0) {
+            std::cout << std::format("frame count: {}\n", frame_count);
+        }
     }
 
     return 0;
