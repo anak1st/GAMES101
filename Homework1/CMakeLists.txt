@@ -1,12 +1,14 @@
 cmake_minimum_required(VERSION 3.20)
 
-set(vcpkg_path "C:/Developer/Source/vcpkg")
+set(vcpkg_path "C:/Users/Anak1st/Repos/vcpkg")
 set(CMAKE_TOOLCHAIN_FILE "${vcpkg_path}/scripts/buildsystems/vcpkg.cmake" CACHE STRING "Vcpkg toolchain file")
-set(CMAKE_CXX_STANDARD 23)
+message(STATUS "Vcpkg toolchain file: ${CMAKE_TOOLCHAIN_FILE}")
+include_directories("${vcpkg_path}/installed/x64-windows/include")
+
+set(CMAKE_EXPORT_COMPILE_COMMANDS True)
+set(CMAKE_CXX_STANDARD 20)
 
 project(Rasterizer)
-
-include_directories("${vcpkg_path}/installed/x64-windows/include")
 
 file(GLOB SRC_FILES
   "${PROJECT_SOURCE_DIR}/src/*.c"

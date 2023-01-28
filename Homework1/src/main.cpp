@@ -161,13 +161,11 @@ int main(int argc, const char** argv)
         frame_count++;
         if (frame_count % 100 == 0) {
             std::cout << std::format("frame count: {}\n", frame_count);
-            std::cout << get_model_matrix(angle) << "\n\n";
-        }   
+        }
 
         if (key == 'a') {
             angle += 10;
-        }
-        else if (key == 'd') {
+        } else if (key == 'd') {
             angle -= 10;
         }
     }
