@@ -13,6 +13,22 @@ constexpr float degree2radian(float angle) {
     return angle / 180 * pi;
 }
 
+struct Timer_v2 {
+    using Clock = std::chrono::high_resolution_clock;
+    std::chrono::time_point<Clock> p;
+    Timer_v2() {
+        p = Clock::now();
+    };
+    float time() {
+        std::chrono::time_point<Clock> q = Clock::now();
+        std::chrono::duration<float> duration = q - p;
+        p = q;
+        float ms = duration.count() * 1000.0f;
+        // std::cerr << "time took " << ms << "ms" << std::endl;
+        return ms;
+    }
+};
+
 Eigen::Matrix4f get_view_matrix(Eigen::Vector3f eye_pos)
 {
     Eigen::Matrix4f view = Eigen::Matrix4f::Identity();
@@ -113,6 +129,8 @@ int main(int argc, const char** argv)
         return 0;
     }
 
+    Timer_v2 timer;
+
     while(key != 27)
     {
         r.clear(rst::Buffers::Color | rst::Buffers::Depth);
@@ -132,7 +150,9 @@ int main(int argc, const char** argv)
         frame_count++;
         angle += 0.1;
         if (frame_count % 10 == 0) {
-            std::cout << std::format("frame count: {}\n", frame_count);
+            float s = timer.time() / 1000.0f;
+            float frame_rate = 10.0f / s;
+            std::cout << std::format("frame count: {0}, frame rate {1:.2f}\r", frame_count, frame_rate);
         }
     }
 
