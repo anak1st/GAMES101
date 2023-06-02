@@ -1,4 +1,4 @@
-#include "Triangle.hpp"
+// #include "Triangle.hpp"
 #include "rasterizer.hpp"
 #include <eigen3/Eigen/Eigen>
 #include <opencv2/opencv.hpp>
