@@ -1,15 +1,21 @@
-#include <eigen3/Eigen/Eigen>
-#include <opencv2/opencv.hpp>
+#include <fmt/core.h>
+
+#include <algorithm>
 #include <cmath>
-#include <format>
+#include <eigen3/Eigen/Eigen>
 #include <iostream>
 #include <numbers>
-#include <vector>
-#include <algorithm>
 #include <numeric>
-
+#include <opencv2/opencv.hpp>
+#include <vector>
 
 int main() {
-    
-    return 0;
+  fmt::print("Hello World!\n");
+
+  Eigen::Matrix3d m;
+  m << 1, 2, 3, 4, 5, 6, 7, 8, 9;
+
+  std::cout << m << std::endl;
+
+  return 0;
 }
