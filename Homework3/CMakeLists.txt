@@ -24,5 +24,5 @@ target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE fmt::fmt)
 # copy compile_commands.json to build directory
 add_custom_command(TARGET ${CMAKE_PROJECT_NAME} POST_BUILD
   COMMAND ${CMAKE_COMMAND} -E copy_if_different
-  ${CMAKE_BINARY_DIR}/build/compile_commands.json
+  ${CMAKE_BINARY_DIR}/compile_commands.json
   ${CMAKE_SOURCE_DIR}/build/compile_commands.json)

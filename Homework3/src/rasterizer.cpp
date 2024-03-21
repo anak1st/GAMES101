@@ -146,24 +146,24 @@ void rst::rasterizer::draw_line(Eigen::Vector3f begin, Eigen::Vector3f end)
 
 auto to_vec4(const Eigen::Vector3f& v3, float w = 1.0f)
 {
-    return Vector4f(v3.x(), v3.y(), v3.z(), w);
+    return Eigen::Vector4f(v3.x(), v3.y(), v3.z(), w);
 }
 
-static bool insideTriangle(int x, int y, const Vector4f* _v){
-    Vector3f v[3];
+static bool insideTriangle(float x, float y, const Eigen::Vector4f* _v){
+    Eigen::Vector3f v[3];
     for(int i=0;i<3;i++)
         v[i] = {_v[i].x(),_v[i].y(), 1.0};
-    Vector3f f0,f1,f2;
+    Eigen::Vector3f f0,f1,f2;
     f0 = v[1].cross(v[0]);
     f1 = v[2].cross(v[1]);
     f2 = v[0].cross(v[2]);
-    Vector3f p(x,y,1.);
+    Eigen::Vector3f p(x,y,1.);
     if((p.dot(f0)*f0.dot(v[2])>0) && (p.dot(f1)*f1.dot(v[0])>0) && (p.dot(f2)*f2.dot(v[1])>0))
         return true;
     return false;
 }
 
-static std::tuple<float, float, float> computeBarycentric2D(float x, float y, const Vector4f* v){
+static std::tuple<float, float, float> computeBarycentric2D(float x, float y, const Eigen::Vector4f* v){
     float c1 = (x*(v[1].y() - v[2].y()) + (v[2].x() - v[1].x())*y + v[1].x()*v[2].y() - v[2].x()*v[1].y()) / (v[0].x()*(v[1].y() - v[2].y()) + (v[2].x() - v[1].x())*v[0].y() + v[1].x()*v[2].y() - v[2].x()*v[1].y());
     float c2 = (x*(v[2].y() - v[0].y()) + (v[0].x() - v[2].x())*y + v[2].x()*v[0].y() - v[0].x()*v[2].y()) / (v[1].x()*(v[2].y() - v[0].y()) + (v[0].x() - v[2].x())*v[1].y() + v[2].x()*v[0].y() - v[0].x()*v[2].y());
     float c3 = (x*(v[0].y() - v[1].y()) + (v[1].x() - v[0].x())*y + v[0].x()*v[1].y() - v[1].x()*v[0].y()) / (v[2].x()*(v[0].y() - v[1].y()) + (v[1].x() - v[0].x())*v[2].y() + v[0].x()*v[1].y() - v[1].x()*v[0].y());
@@ -301,10 +301,13 @@ void rst::rasterizer::rasterize_triangle(const Triangle& t, const std::array<Eig
                 auto interpolated_normal = interpolate(alpha, beta, gamma, t.normal[0], t.normal[1], t.normal[2], 1);
                 auto interpolated_texcoords = interpolate(alpha, beta, gamma, t.tex_coords[0], t.tex_coords[1], t.tex_coords[2], 1);
                 auto interpolated_shadingcoords = interpolate(alpha, beta, gamma, view_pos[0], view_pos[1], view_pos[2], 1);
-                fragment_shader_payload payload(interpolated_color, interpolated_normal.normalized(), interpolated_texcoords, texture ? &*texture : nullptr);
+                fragment_shader_payload payload(interpolated_color, 
+                                                interpolated_normal.normalized(), 
+                                                interpolated_texcoords, 
+                                                texture ? &*texture : nullptr);
                 payload.view_pos = interpolated_shadingcoords;
                 auto pixel_color = fragment_shader(payload);
-                set_pixel(Vector2i(x, y), pixel_color);
+                set_pixel(Eigen::Vector2i(x, y), pixel_color);
             }
         }
     }
@@ -350,7 +353,7 @@ int rst::rasterizer::get_index(int x, int y)
     return (height-y)*width + x;
 }
 
-void rst::rasterizer::set_pixel(const Vector2i &point, const Eigen::Vector3f &color)
+void rst::rasterizer::set_pixel(const Eigen::Vector2i &point, const Eigen::Vector3f &color)
 {
     //old index: auto ind = point.y() + point.x() * width;
     int ind = (height-point.y())*width + point.x();

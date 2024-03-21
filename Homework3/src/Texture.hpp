@@ -5,6 +5,7 @@
 #ifndef RASTERIZER_TEXTURE_H
 #define RASTERIZER_TEXTURE_H
 #include "global.hpp"
+#include <fmt/core.h>
 #include <eigen3/Eigen/Eigen>
 #include <opencv2/opencv.hpp>
 class Texture{
@@ -24,6 +25,12 @@ public:
 
     Eigen::Vector3f getColor(float u, float v)
     {
+        // if (0 > u || u > 1 || 0 > v || v > 1) {
+        //     fmt::println("u : {} or v : {} out of range\n", u, v);
+        // }
+        u = std::clamp(u, 0.0f, 1.0f);
+        v = std::clamp(v, 0.0f, 1.0f);
+
         auto u_img = u * width;
         auto v_img = (1 - v) * height;
         auto color = image_data.at<cv::Vec3b>(v_img, u_img);

@@ -96,7 +96,7 @@ Eigen::Vector3f texture_fragment_shader(const fragment_shader_payload& payload)
     if (payload.texture)
     {
         // TODO: Get the texture value at the texture coordinates of the current fragment
-
+        return_color = payload.texture->getColor(payload.tex_coords.x(), payload.tex_coords.y());
     }
     Eigen::Vector3f texture_color;
     texture_color << return_color.x(), return_color.y(), return_color.z();
@@ -124,7 +124,25 @@ Eigen::Vector3f texture_fragment_shader(const fragment_shader_payload& payload)
     {
         // TODO: For each light source in the code, calculate what the *ambient*, *diffuse*, and *specular* 
         // components are. Then, accumulate that result on the *result_color* object.
+         Eigen::Vector3f light_dir = (light.position - point).normalized();
+        Eigen::Vector3f view_dir = (eye_pos - point).normalized();
+        
+        float r2 = (light.position - point).squaredNorm(); // 距离衰减
 
+        // ambient 环境光
+        //cwiseProduct(): 矩阵点对点相乘
+        Eigen::Vector3f La = amb_light_intensity.cwiseProduct(ka);
+
+        // diffuse 漫反射
+        Eigen::Vector3f Ld = kd.cwiseProduct(light.intensity / r2);
+        Ld *= std::max(0.0f, normal.dot(light_dir));
+
+        // specular 镜面反射
+        Eigen::Vector3f Ls = ks.cwiseProduct(light.intensity / r2);
+        Eigen::Vector3f H = (light_dir + view_dir).normalized();
+        Ls *= std::pow(std::max(0.0f, normal.dot(H)), p);
+
+        result_color += La + Ld + Ls;
     }
 
     return result_color * 255.f;
@@ -154,7 +172,25 @@ Eigen::Vector3f phong_fragment_shader(const fragment_shader_payload& payload)
     {
         // TODO: For each light source in the code, calculate what the *ambient*, *diffuse*, and *specular* 
         // components are. Then, accumulate that result on the *result_color* object.
+        Eigen::Vector3f light_dir = (light.position - point).normalized();
+        Eigen::Vector3f view_dir = (eye_pos - point).normalized();
         
+        float r2 = (light.position - point).squaredNorm(); // 距离衰减
+
+        // ambient 环境光
+        //cwiseProduct(): 矩阵点对点相乘
+        Eigen::Vector3f La = amb_light_intensity.cwiseProduct(ka);
+
+        // diffuse 漫反射
+        Eigen::Vector3f Ld = kd.cwiseProduct(light.intensity / r2);
+        Ld *= std::max(0.0f, normal.dot(light_dir));
+
+        // specular 镜面反射
+        Eigen::Vector3f Ls = ks.cwiseProduct(light.intensity / r2);
+        Eigen::Vector3f H = (light_dir + view_dir).normalized();
+        Ls *= std::pow(std::max(0.0f, normal.dot(H)), p);
+
+        result_color += La + Ld + Ls;
     }
 
     return result_color * 255.f;
@@ -272,9 +308,9 @@ int main(int argc, const char** argv)
             Triangle* t = new Triangle();
             for(int j=0;j<3;j++)
             {
-                t->setVertex(j,Vector4f(mesh.Vertices[i+j].Position.X,mesh.Vertices[i+j].Position.Y,mesh.Vertices[i+j].Position.Z,1.0));
-                t->setNormal(j,Vector3f(mesh.Vertices[i+j].Normal.X,mesh.Vertices[i+j].Normal.Y,mesh.Vertices[i+j].Normal.Z));
-                t->setTexCoord(j,Vector2f(mesh.Vertices[i+j].TextureCoordinate.X, mesh.Vertices[i+j].TextureCoordinate.Y));
+                t->setVertex(j, Eigen::Vector4f(mesh.Vertices[i+j].Position.X,mesh.Vertices[i+j].Position.Y,mesh.Vertices[i+j].Position.Z,1.0));
+                t->setNormal(j, Eigen::Vector3f(mesh.Vertices[i+j].Normal.X,mesh.Vertices[i+j].Normal.Y,mesh.Vertices[i+j].Normal.Z));
+                t->setTexCoord(j, Eigen::Vector2f(mesh.Vertices[i+j].TextureCoordinate.X, mesh.Vertices[i+j].TextureCoordinate.Y));
             }
             TriangleList.push_back(t);
         }
