@@ -3,35 +3,35 @@
     "configurePresets": [
         {
             "name": "default",
-            "binaryDir": "${sourceDir}/build",
+            "binaryDir": "${sourceDir}/build/",
             "cacheVariables": {
                 "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
             }
         },
         {
-            "name": "clang",
-            "displayName": "Clang (GNU CLI) for MSVC",
-            "description": "使用编译器: Clang",
-            "binaryDir": "${sourceDir}/build",
+            "name": "msvc-build-debug",
+            "displayName": "Visual Studio Community 2022",
+            "description": "将编译器用于 Visual Studio 17 2022 (x64 体系结构)",
             "generator": "Ninja",
+            "binaryDir": "${sourceDir}/build/debug/",
             "cacheVariables": {
                 "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
-                "CMAKE_C_COMPILER": "C:/Program Files/Microsoft Visual Studio/2022/Community/VC/Tools/Llvm/x64/bin/clang.exe",
-                "CMAKE_CXX_COMPILER": "C:/Program Files/Microsoft Visual Studio/2022/Community/VC/Tools/Llvm/x64/bin/clang.exe",
-                "CMAKE_RC_COMPILER": "C:/Program Files/Microsoft Visual Studio/2022/Community/VC/Tools/Llvm/x64/bin/llvm-rc.exe",
+                "CMAKE_C_COMPILER": "cl.exe",
+                "CMAKE_CXX_COMPILER": "cl.exe",
                 "CMAKE_BUILD_TYPE": "Debug"
             }
         },
         {
-            "name": "msvc",
-            "displayName": "Visual Studio Community 2022 Release - amd64",
+            "name": "msvc-build-release",
+            "displayName": "Visual Studio Community 2022",
             "description": "将编译器用于 Visual Studio 17 2022 (x64 体系结构)",
             "generator": "Ninja",
-            "binaryDir": "${sourceDir}/build",
+            "binaryDir": "${sourceDir}/build/release/",
             "cacheVariables": {
                 "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
                 "CMAKE_C_COMPILER": "cl.exe",
-                "CMAKE_CXX_COMPILER": "cl.exe"
+                "CMAKE_CXX_COMPILER": "cl.exe",
+                "CMAKE_BUILD_TYPE": "Release"
             }
         }
     ],
@@ -39,8 +39,14 @@
         {
             "name": "msvc-debug",
             "displayName": "Visual Studio Community 2022 Release - amd64 - Debug",
-            "configurePreset": "msvc",
+            "configurePreset": "msvc-build-debug",
             "configuration": "Debug"
+        },
+        {
+            "name": "msvc-release",
+            "displayName": "Visual Studio Community 2022 Release - amd64 - Release",
+            "configurePreset": "msvc-build-release",
+            "configuration": "Release"
         }
     ]
 }
