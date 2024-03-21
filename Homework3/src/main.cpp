@@ -1,4 +1,7 @@
+#include <cassert>
 #include <iostream>
+#include <numbers>
+#include <cmath>
 #include <opencv2/opencv.hpp>
 
 #include "global.hpp"
@@ -7,6 +10,10 @@
 #include "Shader.hpp"
 #include "Texture.hpp"
 #include "OBJ_Loader.h"
+
+float cot(float x) {
+    return std::tan(std::numbers::pi_v<float> / 2 - x);
+}
 
 Eigen::Matrix4f get_view_matrix(Eigen::Vector3f eye_pos)
 {
@@ -40,9 +47,9 @@ Eigen::Matrix4f get_model_matrix(float angle)
 
     Eigen::Matrix4f translate;
     translate << 1, 0, 0, 0,
-            0, 1, 0, 0,
-            0, 0, 1, 0,
-            0, 0, 0, 1;
+                 0, 1, 0, 0,
+                 0, 0, 1, 0,
+                 0, 0, 0, 1;
 
     return translate * rotation * scale;
 }
@@ -50,7 +57,46 @@ Eigen::Matrix4f get_model_matrix(float angle)
 Eigen::Matrix4f get_projection_matrix(float eye_fov, float aspect_ratio, float zNear, float zFar)
 {
     // TODO: Use the same projection matrix from the previous assignments
+    // eye_fov = eye_fov * MY_PI / 180.f;
+    // Eigen::Matrix4f P = Eigen::Matrix4f::Identity();
+    // float tmp = cot(eye_fov / 2);
+    // P << tmp / aspect_ratio, 0, 0, 0,
+    //      0, tmp, 0, 0,
+    //      0, 0, (zFar + zNear) / (zNear - zFar), 2 * zFar * zNear / (zNear - zFar),
+    //      0, 0, -1, 0;
+    // return P;
 
+    Eigen::Matrix4f projection = Eigen::Matrix4f::Identity();//定义 4*4 单位矩阵
+
+    Eigen::Matrix4f persp_to_ortho = Eigen::Matrix4f::Identity();//透视->正交的“挤压”矩阵”
+    persp_to_ortho << zNear, 0, 0, 0,
+        0, zNear, 0, 0,
+        0, 0, zNear + zFar, -(zNear * zFar),
+        0, 0, 1, 0;
+
+    float half_eye_fovY = eye_fov / 2 / 180.0 * MY_PI;
+
+    //上下颠倒问题：http://games-cn.org/forums/topic/zuoye2jieguoshangxiadiandao/
+    float top = -zNear * tan(half_eye_fovY);
+    float bottom = -top;
+    float right = aspect_ratio * top;
+    float left = -right;//锥体已经变成了方块
+
+    Eigen::Matrix4f ortho_translate = Eigen::Matrix4f::Identity();//将方块中心移到原点
+    ortho_translate << 1, 0, 0, -(right + left) / 2,
+        0, 1, 0, -(top + bottom) / 2,
+        0, 0, 1, -(zNear + zFar) / 2,
+        0, 0, 0, 1;
+
+    Eigen::Matrix4f ortho_scale = Eigen::Matrix4f::Identity();//将方块长宽高全变成2
+    ortho_scale << 2 / (right - left), 0, 0, 0,
+        0, 2 / (top - bottom), 0, 0,
+        0, 0, 2 / (zNear - zFar), 0,
+        0, 0, 0, 1;
+
+    projection = ortho_scale * ortho_translate * persp_to_ortho * projection;
+
+    return projection;
 }
 
 Eigen::Vector3f vertex_shader(const vertex_shader_payload& payload)
@@ -247,10 +293,12 @@ int main(int argc, const char** argv)
 
     std::string filename = "output.png";
     objl::Loader Loader;
-    std::string obj_path = "../models/spot/";
+    std::string obj_path = "./models/spot/";
 
     // Load .obj File
-    bool loadout = Loader.LoadFile("../models/spot/spot_triangulated_good.obj");
+    bool loadout = Loader.LoadFile("./models/spot/spot_triangulated_good.obj");
+    assert(loadout);
+
     for(auto mesh:Loader.LoadedMeshes)
     {
         for(int i=0;i<mesh.Vertices.size();i+=3)

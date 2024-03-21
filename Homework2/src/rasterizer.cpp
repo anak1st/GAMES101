@@ -8,7 +8,7 @@
 #include <opencv2/opencv.hpp>
 #include <math.h>
 
-#define USE_2xSSAA
+// #define USE_2xSSAA
 
 rst::pos_buf_id rst::rasterizer::load_positions(const std::vector<Eigen::Vector3f> &positions)
 {

@@ -1,12 +1,22 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.20)
+
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 project(Rasterizer)
 
-find_package(OpenCV REQUIRED)
+file(GLOB SRC_FILES
+  "${PROJECT_SOURCE_DIR}/src/*.c"
+  "${PROJECT_SOURCE_DIR}/src/*.cpp"
+  "${PROJECT_SOURCE_DIR}/src/*.h"
+  "${PROJECT_SOURCE_DIR}/src/*.hpp")
+add_executable(${CMAKE_PROJECT_NAME} ${SRC_FILES})
 
-set(CMAKE_CXX_STANDARD 17)
+find_package(Eigen3 CONFIG REQUIRED)
 
-include_directories(/usr/local/include ./include)
+find_package(OpenCV CONFIG REQUIRED)
+include_directories(${OpenCV_INCLUDE_DIRS})
+target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE ${OpenCV_LIBRARIES})
 
-add_executable(Rasterizer main.cpp rasterizer.hpp rasterizer.cpp global.hpp Triangle.hpp Triangle.cpp Texture.hpp Texture.cpp Shader.hpp OBJ_Loader.h)
-target_link_libraries(Rasterizer ${OpenCV_LIBRARIES})
-#target_compile_options(Rasterizer PUBLIC -Wall -Wextra -pedantic)
+find_package(fmt CONFIG REQUIRED)
+target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE fmt::fmt)
