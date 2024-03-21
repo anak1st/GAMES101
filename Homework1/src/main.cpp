@@ -6,6 +6,7 @@
 #include <format>
 #include <iostream>
 #include <numbers>
+#include <fmt/core.h>
 
 constexpr double MY_PI = 3.1415926;
 constexpr float pi = std::numbers::pi_v<float>;
@@ -141,8 +142,6 @@ int main(int argc, const char** argv)
         return 0;
     }
 
-    std::cout << std::fixed << std::setprecision(4);
-
     while (key != 27) {
         r.clear(rst::Buffers::Color | rst::Buffers::Depth);
 
@@ -160,7 +159,7 @@ int main(int argc, const char** argv)
 
         frame_count++;
         if (frame_count % 100 == 0) {
-            std::cout << std::format("frame count: {}\n", frame_count);
+            fmt::println("frame count: {}", frame_count);
         }
 
         if (key == 'a') {
