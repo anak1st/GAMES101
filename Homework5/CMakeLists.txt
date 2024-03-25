@@ -1,9 +1,18 @@
 cmake_minimum_required(VERSION 3.10)
 project(RayTracing)
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-add_executable(RayTracing main.cpp Object.hpp Vector.hpp Sphere.hpp global.hpp Triangle.hpp Scene.cpp Scene.hpp Light.hpp Renderer.cpp)
-target_compile_options(RayTracing PUBLIC -Wall -Wextra -pedantic -Wshadow -Wreturn-type -fsanitize=undefined)
-target_compile_features(RayTracing PUBLIC cxx_std_17)
-target_link_libraries(RayTracing PUBLIC -fsanitize=undefined)
+file(GLOB SRC_FILES
+  "${PROJECT_SOURCE_DIR}/src/*.c"
+  "${PROJECT_SOURCE_DIR}/src/*.cpp"
+  "${PROJECT_SOURCE_DIR}/src/*.h"
+  "${PROJECT_SOURCE_DIR}/src/*.hpp")
+add_executable(${CMAKE_PROJECT_NAME} ${SRC_FILES})
+
+# copy compile_commands.json to build directory
+add_custom_command(TARGET ${CMAKE_PROJECT_NAME} POST_BUILD
+  COMMAND ${CMAKE_COMMAND} -E copy_if_different
+  ${CMAKE_BINARY_DIR}/compile_commands.json
+  ${CMAKE_SOURCE_DIR}/build/compile_commands.json)

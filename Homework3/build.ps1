@@ -1,2 +1,2 @@
-cmake --preset=msvc-build-release
-cmake --build --preset msvc-release
+cmake --preset=clang-release
+cmake --build --preset release

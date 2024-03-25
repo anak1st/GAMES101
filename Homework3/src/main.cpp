@@ -3,6 +3,7 @@
 #include <numbers>
 #include <cmath>
 #include <opencv2/opencv.hpp>
+#include "fmt/core.h"
 
 #include "global.hpp"
 #include "rasterizer.hpp"
@@ -10,6 +11,7 @@
 #include "Shader.hpp"
 #include "Texture.hpp"
 #include "OBJ_Loader.h"
+#include "timer.hpp"
 
 
 Eigen::Matrix4f get_view_matrix(Eigen::Vector3f eye_pos)
@@ -318,10 +320,10 @@ int main(int argc, const char** argv)
 
     rst::rasterizer r(700, 700);
 
-    auto texture_path = "hmap.jpg";
+    auto texture_path = "spot_texture.png";
     r.set_texture(Texture(obj_path + texture_path));
 
-    std::function<Eigen::Vector3f(fragment_shader_payload)> active_shader = normal_fragment_shader;
+    std::function<Eigen::Vector3f(fragment_shader_payload)> active_shader = texture_fragment_shader;
 
     if (argc >= 2)
     {
@@ -362,9 +364,6 @@ int main(int argc, const char** argv)
     r.set_vertex_shader(vertex_shader);
     r.set_fragment_shader(active_shader);
 
-    int key = 0;
-    int frame_count = 0;
-
     if (command_line)
     {
         r.clear(rst::Buffers::Color | rst::Buffers::Depth);
@@ -382,6 +381,10 @@ int main(int argc, const char** argv)
         return 0;
     }
 
+    int key = 0;
+    int frame_count = 0;
+    Timer timer;
+
     while(key != 27)
     {
         r.clear(rst::Buffers::Color | rst::Buffers::Depth);
@@ -398,17 +401,27 @@ int main(int argc, const char** argv)
 
         cv::imshow("image", image);
         cv::imwrite(filename, image);
+
         key = cv::waitKey(10);
+        // if (key == 'a')
+        // {
+        //     angle -= 0.4;
+        // }
+        // else if (key == 'd')
+        // {
+        //     angle += 0.4;
+        // }
 
-        if (key == 'a' )
-        {
-            angle -= 0.1;
-        }
-        else if (key == 'd')
-        {
-            angle += 0.1;
-        }
+        angle += 0.2;
 
+        frame_count++;
+        float elapsed = timer.elapsed() / 1000.0;
+        if (elapsed >= 1.0)
+        {
+            fmt::println("fps: {:.2f}", frame_count / elapsed);
+            frame_count = 0;
+            timer.reset();
+        }
     }
     return 0;
 }
