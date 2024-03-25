@@ -1,3 +1,0 @@
-D:/GitHub/C++/GAMES101/Assignments/7/build/Release/CMakeFiles/RayTracing.dir
-D:/GitHub/C++/GAMES101/Assignments/7/build/Release/CMakeFiles/edit_cache.dir
-D:/GitHub/C++/GAMES101/Assignments/7/build/Release/CMakeFiles/rebuild_cache.dir
