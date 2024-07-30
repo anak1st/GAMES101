@@ -1,7 +1,0 @@
-{
-  "dependencies": [
-    "eigen3",
-    "opencv",
-    "fmt"
-  ]
-}
