@@ -8,7 +8,7 @@
 #include <opencv2/opencv.hpp>
 #include <math.h>
 
-// #define USE_2xSSAA
+#define USE_2xSSAA 0
 
 rst::pos_buf_id rst::rasterizer::load_positions(const std::vector<Eigen::Vector3f> &positions)
 {
@@ -115,7 +115,7 @@ void rst::rasterizer::draw(pos_buf_id pos_buffer, ind_buf_id ind_buffer, col_buf
         rasterize_triangle(t);
     }
 
-#ifdef USE_2xSSAA
+#if USE_2xSSAA
     for (int x = 0; x < width; x++) {
         for (int y = 0; y < height; y++) {
             Eigen::Vector3f color(0, 0, 0);
@@ -154,7 +154,8 @@ void rst::rasterizer::rasterize_triangle(const Triangle& t) {
     for (int x = x_min; x < x_max; x++) {
         for (int y = y_min; y < y_max; y++) {
             Eigen::Vector3f point(x, y, 1.0f);
-#ifdef USE_2xSSAA
+
+#if USE_2xSSAA
             int inside_count = 0;
             int update_depth = 0;
             int index = 0;

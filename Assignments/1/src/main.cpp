@@ -42,7 +42,7 @@ Eigen::Matrix4f get_model_matrix(float rotation_angle)
     float cosz = std::cos(radian);
     Eigen::Matrix4f translate;
     translate << cosz, -sinz, 0, 0, 
-                 sinz, cosz, 0, 0, 
+                 sinz,  cosz, 0, 0, 
                  0, 0, 1, 0, 
                  0, 0, 0, 1;
     model = translate * model;

@@ -16,6 +16,10 @@ public:
     Texture(const std::string& name)
     {
         image_data = cv::imread(name);
+        if (image_data.empty()) {
+            fmt::println("Error: Image {} not found", name);
+            exit(-1);
+        }
         cv::cvtColor(image_data, image_data, cv::COLOR_RGB2BGR);
         width = image_data.cols;
         height = image_data.rows;
