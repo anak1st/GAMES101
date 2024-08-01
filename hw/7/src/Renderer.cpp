@@ -3,9 +3,13 @@
 //
 
 #include <fstream>
+#include <iostream>
+#include <vector>
+#include <string>
+#include <cassert>
 #include "Scene.hpp"
 #include "Renderer.hpp"
-
+#include "ThreadPool.hpp"
 
 inline float deg2rad(const float& deg) { return deg * M_PI / 180.0; }
 
@@ -26,25 +30,60 @@ void Renderer::Render(const Scene& scene)
     // change the spp value to change sample ammount
     int spp = 16;
     std::cout << "SPP: " << spp << "\n";
-    for (uint32_t j = 0; j < scene.height; ++j) {
-        for (uint32_t i = 0; i < scene.width; ++i) {
-            // generate primary ray direction
-            float x = (2 * (i + 0.5) / (float)scene.width - 1) *
-                      imageAspectRatio * scale;
+
+    // for (uint32_t j = 0; j < scene.height; ++j) {
+    //     for (uint32_t i = 0; i < scene.width; ++i) {
+    //         // generate primary ray direction
+    //         float x = (2 * (i + 0.5) / (float)scene.width - 1) *
+    //                   imageAspectRatio * scale;
+    //         float y = (1 - 2 * (j + 0.5) / (float)scene.height) * scale;
+
+    //         Vector3f dir = normalize(Vector3f(-x, y, 1));
+    //         for (int k = 0; k < spp; k++){
+    //             framebuffer[m] += scene.castRay(Ray(eye_pos, dir), 0) / spp;  
+    //         }
+    //         m++;
+    //     }
+    //     UpdateProgress(j / (float)scene.height);
+    // }
+    // UpdateProgress(1.f);
+
+    ThreadPool pool(8);
+    pool.init();
+    int progress = 0;
+    std::mutex progress_mutex;
+
+    auto func = [&](int j) {
+        // generate primary ray direction
+        for (uint32_t i = 0; i < scene.width; i++) {
+            float x = (2 * (i + 0.5) / (float)scene.width - 1) * imageAspectRatio * scale;
             float y = (1 - 2 * (j + 0.5) / (float)scene.height) * scale;
 
             Vector3f dir = normalize(Vector3f(-x, y, 1));
-            for (int k = 0; k < spp; k++){
-                framebuffer[m] += scene.castRay(Ray(eye_pos, dir), 0) / spp;  
+            for (int k = 0; k < spp; k++) {
+                Ray ray = Ray(eye_pos, dir);
+                framebuffer[j * scene.width + i] += scene.castRay(ray, 0) / spp;  
             }
-            m++;
         }
-        UpdateProgress(j / (float)scene.height);
+        
+        {
+            std::lock_guard<std::mutex> lock(progress_mutex);
+            progress++;
+            UpdateProgress(progress / (float)scene.height);
+        }
+    };
+
+    for (uint32_t j = 0; j < scene.height; j++) {
+        pool.submit(func, j);
     }
+    
+    pool.wait();
     UpdateProgress(1.f);
+    pool.shutdown();
 
     // save framebuffer to file
-    FILE* fp = fopen("binary.ppm", "wb");
+    std::string filename = "binary_" + std::to_string(spp) + ".ppm";
+    FILE* fp = fopen(filename.c_str(), "wb");
     (void)fprintf(fp, "P6\n%d %d\n255\n", scene.width, scene.height);
     for (auto i = 0; i < scene.height * scene.width; ++i) {
         static unsigned char color[3];
