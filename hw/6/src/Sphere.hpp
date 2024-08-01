@@ -10,7 +10,7 @@
 #include "Bounds3.hpp"
 #include "Material.hpp"
 
-class Sphere : public Object{
+class Sphere : public Object {
 public:
     Vector3f center;
     float radius, radius2;

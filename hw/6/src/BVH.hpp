@@ -17,7 +17,7 @@
 
 struct BVHBuildNode;
 // BVHAccel Forward Declarations
-struct BVHPrimitiveInfo;
+// struct BVHPrimitiveInfo;
 
 // BVHAccel Declarations
 inline int leafNodes, totalLeafNodes, totalPrimitives, interiorNodes;
@@ -57,7 +57,8 @@ public:
     // BVHBuildNode Public Methods
     BVHBuildNode(){
         bounds = Bounds3();
-        left = nullptr;right = nullptr;
+        left = nullptr;
+        right = nullptr;
         object = nullptr;
     }
 };
