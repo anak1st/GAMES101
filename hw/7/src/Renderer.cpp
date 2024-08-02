@@ -2,7 +2,6 @@
 // Created by goksu on 2/25/20.
 //
 
-#include <fstream>
 #include <iostream>
 #include <vector>
 #include <string>
@@ -18,68 +17,49 @@ const float EPSILON = 0.00001;
 // The main render function. This where we iterate over all pixels in the image,
 // generate primary rays and cast these rays into the scene. The content of the
 // framebuffer is saved to a file.
-void Renderer::Render(const Scene& scene)
+void Renderer::Render(const Scene& scene, int spp)
 {
     std::vector<Vector3f> framebuffer(scene.width * scene.height);
 
     float scale = tan(deg2rad(scene.fov * 0.5));
     float imageAspectRatio = scene.width / (float)scene.height;
     Vector3f eye_pos(278, 273, -800);
-    int m = 0;
 
-    // change the spp value to change sample ammount
-    int spp = 16;
     std::cout << "SPP: " << spp << "\n";
-
-    // for (uint32_t j = 0; j < scene.height; ++j) {
-    //     for (uint32_t i = 0; i < scene.width; ++i) {
-    //         // generate primary ray direction
-    //         float x = (2 * (i + 0.5) / (float)scene.width - 1) *
-    //                   imageAspectRatio * scale;
-    //         float y = (1 - 2 * (j + 0.5) / (float)scene.height) * scale;
-
-    //         Vector3f dir = normalize(Vector3f(-x, y, 1));
-    //         for (int k = 0; k < spp; k++){
-    //             framebuffer[m] += scene.castRay(Ray(eye_pos, dir), 0) / spp;  
-    //         }
-    //         m++;
-    //     }
-    //     UpdateProgress(j / (float)scene.height);
-    // }
-    // UpdateProgress(1.f);
 
     ThreadPool pool(8);
     pool.init();
-    int progress = 0;
-    std::mutex progress_mutex;
+    int total = scene.height * scene.width;
+    int step = 0;
+    std::mutex stepMutex;
 
-    auto func = [&](int j) {
-        // generate primary ray direction
-        for (uint32_t i = 0; i < scene.width; i++) {
-            float x = (2 * (i + 0.5) / (float)scene.width - 1) * imageAspectRatio * scale;
-            float y = (1 - 2 * (j + 0.5) / (float)scene.height) * scale;
-
-            Vector3f dir = normalize(Vector3f(-x, y, 1));
+    auto func = [&](int i) {
+        for (int j = 0; j < scene.width; j++) {
             for (int k = 0; k < spp; k++) {
+                float x = get_random_float();
+                float y = get_random_float();
+                float _x = (2 * (j + x) / (float)scene.width - 1) * imageAspectRatio * scale;
+                float _y = (1 - 2 * (i + y) / (float)scene.height) * scale;
+                Vector3f dir = normalize(Vector3f(-_x, _y, 1));
                 Ray ray = Ray(eye_pos, dir);
-                framebuffer[j * scene.width + i] += scene.castRay(ray, 0) / spp;  
+                framebuffer[i * scene.width + j] += scene.castRay(ray, 0, true) / spp;
             }
         }
-        
-        {
-            std::lock_guard<std::mutex> lock(progress_mutex);
-            progress++;
-            UpdateProgress(progress / (float)scene.height);
+
+        if (true) {
+            std::lock_guard<std::mutex> lock(stepMutex);
+            step += scene.width;
+            UpdateProgress(step / (float)total); 
         }
     };
 
-    for (uint32_t j = 0; j < scene.height; j++) {
-        pool.submit(func, j);
+    for (int i = 0; i < scene.height; i++) {
+        pool.submit(func, i);
     }
-    
+
     pool.wait();
-    UpdateProgress(1.f);
     pool.shutdown();
+    UpdateProgress(1.f);
 
     // save framebuffer to file
     std::string filename = "binary_" + std::to_string(spp) + ".ppm";
