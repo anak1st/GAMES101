@@ -60,7 +60,7 @@ bool Scene::trace(
 int count = 0;
 
 // Implementation of Path Tracing
-Vector3f Scene::castRay(const Ray &ray, int depth, bool emit) const
+Vector3f Scene::castRay(const Ray &ray, int depth) const
 {
     // TODO Implement Path Tracing Algorithm here
     Vector3f color(0);
@@ -74,12 +74,7 @@ Vector3f Scene::castRay(const Ray &ray, int depth, bool emit) const
 
     // hit light source
     if (inter_ray.m->hasEmission()) {
-        if (emit) {
-            return inter_ray.m->getEmission();
-        } else {
-            return color;
-        }
-        return color;
+        return inter_ray.m->getEmission();
     }
 
     const float epsilon = 0.0005f;
@@ -89,50 +84,101 @@ Vector3f Scene::castRay(const Ray &ray, int depth, bool emit) const
     Vector3f p = inter_ray.coords;  // shading point
     Vector3f wo = normalize(-ray.direction);  // observation dir.
     Material* m = inter_ray.m;  // material at shading point
-    Vector3f N = normalize(inter_ray.normal); // normal of shading point
-
-    // sample light
-    Intersection inter_light;
-    float pdf_light;
-    sampleLight(inter_light, pdf_light);
-    Vector3f x = inter_light.coords;  // sampled position
-    Vector3f ws_unorm = x - p;  // shading point -> source
-    Vector3f ws = normalize(ws_unorm);  // shading point -> source
-    Vector3f NN = normalize(inter_light.normal); // normal of sampled position
+    Vector3f N = normalize(inter_ray.normal); // normal of shading point  
     
-    // Direct Illumination
-    Vector3f L_dir(0);
-    // check block between shading point & sampled light position
-    Intersection inter_dir = intersect(Ray(p, ws));
-    // no block, add direct illumination
-    // if (inter_dir.obj == inter_light.obj)
-    if (inter_dir.distance - ws_unorm.norm() > -epsilon)
-    {
-        // apply rendering equation (dir. part)
-        L_dir = inter_light.emit 
-              * m->eval(ws, wo, N) 
-              * std::max(.0f, dotProduct(ws, N))
-              * std::max(.0f, dotProduct(-ws, NN))
-              / dotProduct(ws_unorm, ws_unorm) 
-              / pdf_light;
-    }
+    switch (m->getType()) {
+        case DIFFUSE: {
+            // Direct Illumination
+            Vector3f L_dir(0);
+            if (m->getType() == DIFFUSE) {
+                
+                // sample light
+                Intersection inter_light;
+                float pdf_light;
+                sampleLight(inter_light, pdf_light);
+                Vector3f x = inter_light.coords;  // sampled position
+                Vector3f ws_unorm = x - p;  // shading point -> source
+                Vector3f ws = normalize(ws_unorm);  // shading point -> source
+                Vector3f NN = normalize(inter_light.normal); // normal of sampled position
 
-    // Indirect Illumination
-    Vector3f L_indir(0);
-    float p_RR = get_random_float();
-    if (p_RR < RussianRoulette)
-    {
-        // apply rendering equation (indir. part)
-        Vector3f wi = m->sample(wo, N);  // sample a direction for indierect illumination
-        Vector3f indir_shade_color = castRay(Ray(p, wi), depth, false);  // cast ray recursively
-        L_indir = indir_shade_color 
-                * m->eval(wi, wo, N) 
-                * std::max(.0f, dotProduct(wi, N))
-                / m->pdf(wi, wo, N)  // remove an extra division by RussionRoulette according to https://github.com/MARMOTatZJU/GAMES101-HW/issues/2
-                / RussianRoulette;
-    }
+                // check block between shading point & sampled light position
+                Intersection inter_dir = intersect(Ray(p, ws));
+                // no block, add direct illumination
+                // if (inter_dir.obj == inter_light.obj)
+                if (inter_dir.distance - ws_unorm.norm() > -epsilon)
+                {
+                    // apply rendering equation (dir. part)
+                    L_dir = inter_light.emit 
+                        * m->eval(ws, wo, N) 
+                        * std::max(.0f, dotProduct(ws, N))
+                        * std::max(.0f, dotProduct(-ws, NN))
+                        / dotProduct(ws_unorm, ws_unorm) 
+                        / pdf_light;
+                }
+            }
 
-    color = L_dir + L_indir;
+            // Indirect Illumination
+            Vector3f L_indir(0);
+            float p_RR = get_random_float();
+            if (p_RR < RussianRoulette)
+            {
+                Vector3f wi = m->sample(ray.direction, N).normalized();  // sample a direction for indierect illumination
+                Ray next_ray(p, wi);
+                Intersection next_inter = intersect(next_ray);
+                if (next_inter.happened && !next_inter.m->hasEmission())
+                {
+                    // apply rendering equation (indir. part)
+                    float pdf = m->pdf(ray.direction, wi, N);
+                    if (pdf > epsilon)
+                    {
+                        L_indir = castRay(next_ray, depth + 1)  // cast ray recursively
+                                * m->eval(ray.direction, wi, N) 
+                                * dotProduct(wi, N)
+                                / pdf 
+                                / RussianRoulette; // remove an extra division by 
+                                                   // RussionRoulette according to 
+                                                   // https://github.com/MARMOTatZJU/GAMES101-HW/issues/2
+                    }
+                }
+            }
+
+            color = L_dir + L_indir;
+            break;
+        }
+
+        // https://blog.csdn.net/ycrsw/article/details/124408789
+        case MIRROR: {
+            Vector3f L_indir(0);
+            float p_RR = get_random_float();
+            if (p_RR < RussianRoulette)
+            {
+                Vector3f wi = m->sample(ray.direction, N).normalized();  // sample a direction for indierect illumination
+                Ray next_ray(p, wi);
+                Intersection next_inter = intersect(next_ray);
+                if (next_inter.happened)
+                {
+                    // apply rendering equation (indir. part)
+                    float pdf = m->pdf(ray.direction, wi, N);
+                    if (pdf > epsilon)
+                    {
+                        L_indir = castRay(next_ray, depth + 1)  // cast ray recursively
+                                * m->eval(ray.direction, wi, N) 
+                                * dotProduct(wi, N)
+                                / pdf 
+                                / RussianRoulette; // remove an extra division by 
+                                                   // RussionRoulette according to 
+                                                   // https://github.com/MARMOTatZJU/GAMES101-HW/issues/2
+                    }
+                }
+            }
+
+            color = L_indir;
+            break;
+        }
+
+        default:
+            break;
+    }
 
     return color;
 }

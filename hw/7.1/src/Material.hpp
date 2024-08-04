@@ -8,7 +8,7 @@
 #include "Vector.hpp"
 #include "global.hpp"
 
-enum MaterialType { DIFFUSE};
+enum MaterialType { DIFFUSE, MIRROR };
 
 class Material{
 private:
@@ -143,6 +143,16 @@ Vector3f Material::sample(const Vector3f &wi, const Vector3f &N){
             
             break;
         }
+
+        case MIRROR:
+        {
+            Vector3f localRay = reflect(wi, N);
+            return localRay;
+            break;
+        }
+
+        default:
+            break;
     }
 
     return Vector3f(0.0f);
@@ -159,6 +169,18 @@ float Material::pdf(const Vector3f &wi, const Vector3f &wo, const Vector3f &N){
                 return 0.0f;
             break;
         }
+
+        case MIRROR:
+        {
+            if (dotProduct(wo, N) > 0.0f)
+                return 1.0f;
+            else
+                return 0.0f;
+            break;
+        }
+
+        default:
+            break;
     }
 
     return 0.0f;
@@ -168,13 +190,27 @@ Vector3f Material::eval(const Vector3f &wi, const Vector3f &wo, const Vector3f &
     switch(m_type){
         case DIFFUSE:
         {
-            // calculate the contribution of diffuse   model
+            // calculate the contribution of diffuse model
             float cosalpha = dotProduct(N, wo);
             if (cosalpha > 0.0f) {
                 Vector3f diffuse = Kd / M_PI;
                 return diffuse;
             }
             else
+                return Vector3f(0.0f);
+            break;
+        }
+    
+        case MIRROR:
+        {
+            // calculate the contribution of mirror model
+            float cosalpha = dotProduct(N, wo);
+            float kr;
+            if (cosalpha > 0.0f) {
+                fresnel(wi, N, ior, kr);
+                Vector3f mirror = 1 / cosalpha;
+                return kr * mirror;        
+            } else 
                 return Vector3f(0.0f);
             break;
         }
